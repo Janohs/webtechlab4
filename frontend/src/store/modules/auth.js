@@ -1,4 +1,4 @@
-import api from '../../services/api'
+import api, { apiHelpers } from '../../services/api'
 
 const API_BASE_URL = 'http://localhost:3001' // Fallback for direct calls
 
@@ -38,8 +38,8 @@ const actions = {
     try {
       // In a real app, this would be a proper login endpoint
       // For now, we'll simulate login by checking if user exists
-      const response = await api.get('/users')
-      const users = response.data
+      const response = await apiHelpers.users.getAll()
+      const users = Array.isArray(response.data) ? response.data : []
       
       const user = users.find(u => u.email === credentials.email)
       if (user) {
@@ -60,31 +60,39 @@ const actions = {
   async register({ commit }, userData) {
     try {
       // Check if email already exists
-      const existingUsersResponse = await api.get('/users')
-      const existingUsers = existingUsersResponse.data
+      const existingUsersResponse = await apiHelpers.users.getAll()
+      const existingUsers = Array.isArray(existingUsersResponse.data) ? existingUsersResponse.data : []
       
       const emailExists = existingUsers.find(u => u.email === userData.email)
       if (emailExists) {
         throw new Error('Email already exists')
       }
       
-      // Generate a unique ID
-      const id = Date.now().toString()
+      // Create new user
       const newUser = {
-        id,
         ...userData,
         role: userData.role || 'user'
       }
       
-      const response = await api.post('/users', newUser)
+      const response = await apiHelpers.users.create(newUser)
+      
+      // Handle different response formats between JSON server and PHP
+      let createdUser;
+      if (response.data.message) {
+        // PHP backend response
+        createdUser = { id: Date.now().toString(), ...newUser }
+      } else {
+        // JSON server response
+        createdUser = response.data
+      }
       
       // Auto-login after successful registration
       const token = 'fake-jwt-token-' + Date.now()
       commit('SET_TOKEN', token)
-      commit('SET_CURRENT_USER', response.data)
+      commit('SET_CURRENT_USER', createdUser)
       commit('SET_AUTHENTICATED', true)
       
-      return { success: true, user: response.data }
+      return { success: true, user: createdUser }
     } catch (error) {
       throw new Error('Registration failed: ' + error.message)
     }

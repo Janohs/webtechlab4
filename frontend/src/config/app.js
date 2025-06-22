@@ -1,5 +1,11 @@
 export default {
-  API_BASE_URL: process.env.VUE_APP_API_URL || 'http://localhost:3001',
+  // API Configuration - Choose your backend
+  API_BASE_URL: process.env.VUE_APP_API_URL || 'http://localhost:3001', // JSON Server
+  PHP_API_URL: process.env.VUE_APP_PHP_API_URL || 'http://localhost/webtechlab4/backend/api.php', // XAMPP PHP
+  
+  // Backend type: 'json' or 'php'
+  BACKEND_TYPE: process.env.VUE_APP_BACKEND_TYPE || 'json',
+  
   APP_NAME: 'Management System',
   APP_VERSION: '1.0.0',
   

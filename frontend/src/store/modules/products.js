@@ -1,4 +1,4 @@
-import api from '../../services/api'
+import api, { apiHelpers } from '../../services/api'
 
 const state = {
   products: [],
@@ -35,8 +35,9 @@ const actions = {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     try {
-      const response = await api.get('/products')
-      commit('SET_PRODUCTS', response.data)
+      const response = await apiHelpers.products.getAll()
+      const products = Array.isArray(response.data) ? response.data : []
+      commit('SET_PRODUCTS', products)
     } catch (error) {
       commit('SET_ERROR', error.message)
     } finally {
@@ -46,11 +47,18 @@ const actions = {
 
   async createProduct({ commit }, productData) {
     try {
-      const id = Date.now().toString()
-      const newProduct = { id, ...productData }
-      const response = await api.post('/products', newProduct)
-      commit('ADD_PRODUCT', response.data)
-      return response.data
+      const response = await apiHelpers.products.create(productData)
+      // Handle different response formats between JSON server and PHP
+      let createdProduct;
+      if (response.data.message) {
+        // PHP backend response
+        createdProduct = { id: Date.now().toString(), ...productData }
+      } else {
+        // JSON server response
+        createdProduct = response.data
+      }
+      commit('ADD_PRODUCT', createdProduct)
+      return createdProduct
     } catch (error) {
       throw new Error('Failed to create product: ' + error.message)
     }
@@ -58,10 +66,11 @@ const actions = {
 
   async updateProduct({ commit }, { id, productData }) {
     try {
-      const updatedProduct = { id, ...productData }
-      const response = await api.put(`/products/${id}`, updatedProduct)
-      commit('UPDATE_PRODUCT', response.data)
-      return response.data
+      const response = await apiHelpers.products.update(id, productData)
+      // Handle different response formats between JSON server and PHP
+      const updatedProduct = response.data.message ? { id, ...productData } : response.data
+      commit('UPDATE_PRODUCT', updatedProduct)
+      return updatedProduct
     } catch (error) {
       throw new Error('Failed to update product: ' + error.message)
     }
@@ -69,7 +78,7 @@ const actions = {
 
   async deleteProduct({ commit }, productId) {
     try {
-      await api.delete(`/products/${productId}`)
+      await apiHelpers.products.delete(productId)
       commit('DELETE_PRODUCT', productId)
     } catch (error) {
       throw new Error('Failed to delete product: ' + error.message)
@@ -83,7 +92,7 @@ const actions = {
     }
     
     try {
-      const response = await api.get(`/products/${productId}`)
+      const response = await apiHelpers.products.getById(productId)
       return response.data
     } catch (error) {
       throw new Error('Failed to fetch product: ' + error.message)

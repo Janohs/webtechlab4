@@ -1,4 +1,4 @@
-import api from '../../services/api'
+import api, { apiHelpers } from '../../services/api'
 
 const state = {
   orders: [],
@@ -35,8 +35,9 @@ const actions = {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     try {
-      const response = await api.get('/orders')
-      commit('SET_ORDERS', response.data)
+      const response = await apiHelpers.orders.getAll()
+      const orders = Array.isArray(response.data) ? response.data : []
+      commit('SET_ORDERS', orders)
     } catch (error) {
       commit('SET_ERROR', error.message)
     } finally {
@@ -46,11 +47,18 @@ const actions = {
 
   async createOrder({ commit }, orderData) {
     try {
-      const id = Date.now().toString()
-      const newOrder = { id, ...orderData }
-      const response = await api.post('/orders', newOrder)
-      commit('ADD_ORDER', response.data)
-      return response.data
+      const response = await apiHelpers.orders.create(orderData)
+      // Handle different response formats between JSON server and PHP
+      let createdOrder;
+      if (response.data.message) {
+        // PHP backend response
+        createdOrder = { id: Date.now().toString(), ...orderData }
+      } else {
+        // JSON server response
+        createdOrder = response.data
+      }
+      commit('ADD_ORDER', createdOrder)
+      return createdOrder
     } catch (error) {
       throw new Error('Failed to create order: ' + error.message)
     }
@@ -58,10 +66,11 @@ const actions = {
 
   async updateOrder({ commit }, { id, orderData }) {
     try {
-      const updatedOrder = { id, ...orderData }
-      const response = await api.put(`/orders/${id}`, updatedOrder)
-      commit('UPDATE_ORDER', response.data)
-      return response.data
+      const response = await apiHelpers.orders.update(id, orderData)
+      // Handle different response formats between JSON server and PHP
+      const updatedOrder = response.data.message ? { id, ...orderData } : response.data
+      commit('UPDATE_ORDER', updatedOrder)
+      return updatedOrder
     } catch (error) {
       throw new Error('Failed to update order: ' + error.message)
     }
@@ -69,7 +78,7 @@ const actions = {
 
   async deleteOrder({ commit }, orderId) {
     try {
-      await api.delete(`/orders/${orderId}`)
+      await apiHelpers.orders.delete(orderId)
       commit('DELETE_ORDER', orderId)
     } catch (error) {
       throw new Error('Failed to delete order: ' + error.message)
@@ -83,7 +92,7 @@ const actions = {
     }
     
     try {
-      const response = await api.get(`/orders/${orderId}`)
+      const response = await apiHelpers.orders.getById(orderId)
       return response.data
     } catch (error) {
       throw new Error('Failed to fetch order: ' + error.message)

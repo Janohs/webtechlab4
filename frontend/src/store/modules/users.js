@@ -1,4 +1,4 @@
-import api from '../../services/api'
+import api, { apiHelpers } from '../../services/api'
 
 const state = {
   users: [],
@@ -35,7 +35,7 @@ const actions = {
     commit('SET_LOADING', true)
     commit('SET_ERROR', null)
     try {
-      const response = await api.get('/users')
+      const response = await apiHelpers.users.getAll()
       commit('SET_USERS', response.data)
     } catch (error) {
       commit('SET_ERROR', error.message)
@@ -46,11 +46,11 @@ const actions = {
 
   async createUser({ commit }, userData) {
     try {
-      const id = Date.now().toString()
-      const newUser = { id, ...userData }
-      const response = await api.post('/users', newUser)
-      commit('ADD_USER', response.data)
-      return response.data
+      const response = await apiHelpers.users.create(userData)
+      // PHP backend returns different response format
+      const newUser = response.data.message ? { id: Date.now().toString(), ...userData } : response.data
+      commit('ADD_USER', newUser)
+      return newUser
     } catch (error) {
       throw new Error('Failed to create user: ' + error.message)
     }
@@ -58,10 +58,11 @@ const actions = {
 
   async updateUser({ commit }, { id, userData }) {
     try {
-      const updatedUser = { id, ...userData }
-      const response = await api.put(`/users/${id}`, updatedUser)
-      commit('UPDATE_USER', response.data)
-      return response.data
+      const response = await apiHelpers.users.update(id, userData)
+      // PHP backend returns different response format
+      const updatedUser = response.data.message ? { id, ...userData } : response.data
+      commit('UPDATE_USER', updatedUser)
+      return updatedUser
     } catch (error) {
       throw new Error('Failed to update user: ' + error.message)
     }
@@ -69,7 +70,7 @@ const actions = {
 
   async deleteUser({ commit }, userId) {
     try {
-      await api.delete(`/users/${userId}`)
+      await apiHelpers.users.delete(userId)
       commit('DELETE_USER', userId)
     } catch (error) {
       throw new Error('Failed to delete user: ' + error.message)
@@ -83,7 +84,7 @@ const actions = {
     }
     
     try {
-      const response = await api.get(`/users/${userId}`)
+      const response = await apiHelpers.users.getById(userId)
       return response.data
     } catch (error) {
       throw new Error('Failed to fetch user: ' + error.message)
