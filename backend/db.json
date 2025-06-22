@@ -1,0 +1,58 @@
+{
+  "users": [
+    {
+      "id": "2",
+      "name": "Seman Rihan",
+      "email": "semrihan@utm.my",
+      "role": "sales"
+    },
+    {
+      "id": "8910"
+    },
+    {
+      "id": "1750600766255",
+      "name": "Emmanuts",
+      "email": "nuts@example.com",
+      "role": "sales"
+    }    
+  ],
+  "products": [
+    {
+      "id": "3",
+      "name": "Phone",
+      "price": 1999.5
+    },
+    {
+      "id": "5",
+      "name": "Desk",
+      "price": 500
+    },
+    {
+      "id": "9",
+      "name": "Book",
+      "price": 45.5
+    },
+    {
+      "id": "79cf"
+    }
+  ],
+  "orders": [
+    {
+      "id": "2",
+      "productId": null,
+      "quantity": 1,
+      "customer": "Bob Johnson",
+      "status": "processing"
+    },
+    {
+      "id": "3",
+      "productId": "5",
+      "quantity": 3,
+      "customer": "Charlie Lee",
+      "status": "delivered"
+    },
+    {
+      "id": "e3b8"
+    }
+  ]
+}

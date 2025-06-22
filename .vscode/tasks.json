@@ -1,0 +1,38 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Frontend Development Server",
+			"type": "shell",
+			"command": "npm run serve",
+			"args": [],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": [],
+			"options": {
+				"cwd": "${workspaceFolder}/frontend"
+			}
+		},
+		{
+			"label": "Start Backend JSON Server",
+			"type": "shell",
+			"command": "npx json-server --watch db.json --port 3001",
+			"args": [],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": [],
+			"options": {
+				"cwd": "${workspaceFolder}/backend"
+			}
+		},
+		{
+			"label": "Start Full Application",
+			"dependsOrder": "parallel",
+			"dependsOn": [
+				"Start Backend JSON Server",
+				"Start Frontend Development Server"
+			],
+			"group": "build"
+		}
+	]
+}
